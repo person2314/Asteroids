@@ -28,7 +28,7 @@ for(var y = 0; y < 15; y++)
 {
 	background[y] = [];
 	for(var x = 0; x < 20; x++)
-			background[y][x] = grass;
+		background[y][x] = grass;
 }
 
 var KEY_SPACE = 32;
@@ -51,6 +51,8 @@ var STATE_GAMEOVER = 2;
 
 var gameState = STATE_SPLASH;
 
+//var playerisDead = false;
+
 var player = 
 {
 	image: document.createElement("img"),
@@ -61,9 +63,20 @@ var player =
 	directionX: 0,
 	directionY: 0,
 	angularDirection: 0,
-	rotation: 0	
+	rotation: 0,
+	isDead: false
 };
 
+/*if(player.isDead == true)
+{
+	console.log("Dead")
+}
+
+if(player.isDead == false)
+{
+	console.log("Alive")
+}
+*/
 player.image.src = "ship.png"
 
 var asteroids = [];
@@ -187,7 +200,7 @@ function onKeyUp(event)
 	}
 	if(event.keyCode == KEY_RIGHT)
 	{
-	player.angularDirection = 0;
+		player.angularDirection = 0;
 	}
 }
 
@@ -215,13 +228,7 @@ function runSplash(deltaTime)
 		return;
 	}
 
-	for(var y = 0; y < 15; y++)
-	{
-		for (var x = 0; x < 20; x++)
-		{
-			context.drawImage(background[y][x], x * 32, y * 32);	
-		}
-	}
+	
 	context.font = "bold 40px Ariel";
 	context.fillStyle = "#000000"
 	context.fillText ("GET READY", 200, 240);
@@ -230,13 +237,6 @@ function runSplash(deltaTime)
 
 function runGame(deltaTime)
 {
-for(var y = 0; y < 15; y++)
-	{
-		for (var x = 0; x < 20; x++)
-		{
-			context.drawImage(background[y][x], x * 32, y * 32);	
-		}
-	}
 	
 	if(shootTimer > 0)
 		shootTimer -= deltaTime;
@@ -256,7 +256,7 @@ for(var y = 0; y < 15; y++)
 			bullets[i].y > SCREEN_HEIGHT)
 		{
 			bullets.splice(i, 1);
-	
+
 			break;
 		}
 	}
@@ -264,8 +264,8 @@ for(var y = 0; y < 15; y++)
 	for(var i = 0; i < bullets.length; i++)
 	{
 		context.drawImage(bullets[i].image,
-				bullets[i].x - bullets[i].width/2,
-				bullets[i].y - bullets[i].height/2);
+			bullets[i].x - bullets[i].width/2,
+			bullets[i].y - bullets[i].height/2);
 	}
 	
 	for(var i = 0; i < asteroids.length; i++)
@@ -277,7 +277,7 @@ for(var y = 0; y < 15; y++)
 	for(var i = 0; i < asteroids.length; i++)
 	{
 		context.drawImage(asteroids[i].image, asteroids[i].x - asteroids[i].width/2,
-							asteroids[i].y - asteroids[i].height/2);	
+			asteroids[i].y - asteroids[i].height/2);	
 	}
 	spawnTimer -= deltaTime;
 	if(spawnTimer <= 0)
@@ -291,12 +291,12 @@ for(var y = 0; y < 15; y++)
 		for(var j = 0; j < bullets.length; j++)
 		{
 			if(intersects(
-					bullets[j].x - bullets[j].width/2, bullets[j].y -
-						bullets[j].height/2,
-					bullets[j].width, bullets[j].height,
-					asteroids[i].x - asteroids[i].width/2, asteroids[i].y -
-						asteroids[i].height/2,
-					asteroids[i].width, asteroids[i].height) == true)
+				bullets[j].x - bullets[j].width/2, bullets[j].y -
+				bullets[j].height/2,
+				bullets[j].width, bullets[j].height,
+				asteroids[i].x - asteroids[i].width/2, asteroids[i].y -
+				asteroids[i].height/2,
+				asteroids[i].width, asteroids[i].height) == true)
 			{
 				asteroids.splice(i, 1);
 				bullets.splice(j, 1);
@@ -304,6 +304,55 @@ for(var y = 0; y < 15; y++)
 			}
 		}
 	}
+
+	/*for(var i = 0; i < asteroids.length; i++)
+	{
+		if(player.isDead == false)
+		{
+			player.x += player.velocityX;
+			player.y += player.velocityY;
+			context.drawImage(player.image,
+			player.x - player.width/2,
+			player.y - player.height/2);
+			var hit = intersects(player.x, player.y, player.width, player.height, asteroids[i].x, asteroids[i].y, asteroids[i].width, asteroids[i].height);
+			if(hit == true)
+			{
+				player.isDead = true;
+			}
+			if(player.x < 0 || player.x > SCREEN_WIDTH ||
+				player.y < 0 || player.y > SCREEN_HEIGHT)
+			{
+				player.isDead = true;
+			}
+		}
+	}*/
+	
+
+	if(player.isDead == false)
+	{
+		for(var i=0; i<asteroids.length; i++)
+		{
+			if(intersects(player.x, player.y, player.width, player.height, asteroids[i].x, asteroids[i].y, asteroids[i].width, asteroids[i].height))
+			{	
+				player.isDead = true;
+				/*if(player.isDead == true)
+				{
+					console.log("Dead")
+				}*/
+			}
+		}
+	}
+	if(player.isDead == true)
+	{
+		gameState = STATE_GAMEOVER
+	}
+
+
+	/*if(player.isDead == false)
+	{
+		console.log("Alive")
+	}*/
+	
 
 	var s = Math.sin(player.rotation);
 	var c = Math.cos(player.rotation);
@@ -318,18 +367,21 @@ for(var y = 0; y < 15; y++)
 	
 	player.rotation += player.angularDirection * PLAYER_TURN_SPEED;
 	
+	
 	context.save();
-		context.translate(player.x, player.y);
-		context.rotate(player.rotation);
-		context.drawImage(
-			player.image, -player.width/2, -player.height/2);
+	context.translate(player.x, player.y);
+	context.rotate(player.rotation);
+	context.drawImage(
+		player.image, -player.width/2, -player.height/2);
 	context.restore();
 }
 
 
 function runGameOver(deltaTime)
 {
-
+	context.font = "bold 40px Ariel";
+	context.fillStyle = "#000000"
+	context.fillText ("GAMEOVER", 200, 240);
 }
 
 
@@ -338,22 +390,31 @@ function run()
 {
 	context.fillStyle = "#ccc";
 	context.fillRect(0, 0, canvas.width, canvas.height);
+
+	for(var y = 0; y < 15; y++)
+	{
+		for (var x = 0; x < 20; x++)
+		{
+			context.drawImage(background[y][x], x * 32, y * 32);	
+		}
+	}
+	
 	
 	var deltaTime = getDeltaTime();
 
 	switch(gameState)
 	{
 		case STATE_SPLASH:
-			runSplash(deltaTime);
-			break;
+		runSplash(deltaTime);
+		break;
 
 		case STATE_GAME:
-			runGame(deltaTime);
-			break;
+		runGame(deltaTime);
+		break;
 
 		case STATE_GAMEOVER:
-			runGameOver(deltaTime);
-			break;
+		runGameOver(deltaTime);
+		break;
 
 	}
 	
@@ -363,22 +424,22 @@ function run()
 // called 60 times per second. We have some options to fall back on
 // in case the browser doesn't support our preferred method.
 (function() {
-var onEachFrame;
-if (window.requestAnimationFrame) {
-onEachFrame = function(cb) {
-var _cb = function() { cb(); window.requestAnimationFrame(_cb); }
-_cb();
-};
-} else if (window.mozRequestAnimationFrame) {
-onEachFrame = function(cb) {
-var _cb = function() { cb(); window.mozRequestAnimationFrame(_cb); }
-_cb();
-};
-} else {
-onEachFrame = function(cb) {
-setInterval(cb, 1000 / 60);
-}
-}
-window.onEachFrame = onEachFrame;
+	var onEachFrame;
+	if (window.requestAnimationFrame) {
+		onEachFrame = function(cb) {
+			var _cb = function() { cb(); window.requestAnimationFrame(_cb); }
+			_cb();
+		};
+	} else if (window.mozRequestAnimationFrame) {
+		onEachFrame = function(cb) {
+			var _cb = function() { cb(); window.mozRequestAnimationFrame(_cb); }
+			_cb();
+		};
+	} else {
+		onEachFrame = function(cb) {
+			setInterval(cb, 1000 / 60);
+		}
+	}
+	window.onEachFrame = onEachFrame;
 })();
 window.onEachFrame(run);
